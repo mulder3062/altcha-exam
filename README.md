@@ -21,6 +21,14 @@ altcha-exam/
 └── frontend/  # Next.js 16 (App Router) / TypeScript
 ```
 
+## 처리 흐름
+
+대략적인 흐름:
+![클라이언트](./docs/diagrams/brute-force-flow-client.drawio.png)
+
+세부 흐름:
+![세부 흐름](./docs/diagrams/brute-force-flow-internal.drawio.png)
+
 ## 사전 요구
 
 - JDK 21+
