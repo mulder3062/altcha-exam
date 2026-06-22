@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+security:
+  rate-limit:
+    # ── 데모 체감용 초단위 기본값 ──
+    # (운영 권장값: window 10분 / 5회·15·30분 등은 checkup-backend-rate-limit.md 참고)
+    window-seconds: 60          # 실패 카운팅 윈도우 (운영: 600)
+    max-failures: 5             # 윈도우 내 허용 실패 횟수 (초과 시 차단)
+    block-stage-1-seconds: 15   # 1단계 차단 (운영: 300)
+    block-stage-2-seconds: 30   # 2단계 차단 (운영: 900)
+    block-stage-max-seconds: 60 # 3단계+ 차단 상한 (운영: 1800)
+    cleanup-interval-seconds: 30 # 만료 키 정리 주기
+
+altcha:
+  # 충분히 긴 랜덤 문자열을 환경변수로 주입. 절대 커밋 금지.
+  # 미설정 시 데모용 기본값 사용(경고 로그) — 운영에서는 반드시 환경변수로 교체.
+  hmac-key: ${ALTCHA_HMAC_KEY:demo-insecure-hmac-key-change-me-please-0123456789}
+  max-number: 50000            # PoW 난이도(클수록 어려움). 50,000~200,000 범위에서 튜닝
+  expires-seconds: 300         # 챌린지 TTL 5분

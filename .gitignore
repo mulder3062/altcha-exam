@@ -1,0 +1,59 @@
+# ===== OS =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===== IDE =====
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+
+# ===== Logs =====
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== Env =====
+.env
+.env.local
+.env*.local
+*.pem
+
+# ===== Frontend (Next.js) =====
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.turbo/
+frontend/next-env.d.ts
+frontend/.vercel/
+frontend/coverage/
+
+# ===== Backend (Spring Boot / Gradle) =====
+backend/.gradle/
+backend/build/
+backend/out/
+backend/bin/
+!backend/gradle/wrapper/gradle-wrapper.jar
+backend/!**/src/main/**/build/
+backend/!**/src/test/**/build/
+
+# ===== Misc =====
+*.tmp
+*.bak
+
+# ===== drawio temp/backup =====
+.$*.drawio.bkp
+.$*.drawio.dtmp
+*.drawio.bkp
+*.drawio.dtmp
