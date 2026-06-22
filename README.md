@@ -13,7 +13,7 @@
 
 설계 근거:
 - [`checkup-backend-rate-limit.md`](./checkup-backend-rate-limit.md),
-- [`checkup-b-type-altcha-pilot.md`](./checkup-b-type-altcha-pilot.md)
+- [`checkup-altcha-pilot.md`](checkup-altcha-pilot.md)
 
 ```
 altcha-exam/
