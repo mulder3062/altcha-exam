@@ -7,9 +7,9 @@
 
 ## 1. 목적 & 배경
 
-검진결과 조회를 위해 고객은 성명/병원등록번호/휴대폰번호 3가지를 입력 후 Submit을 하게된다.
+본인확인 기반 조회를 위해 사용자는 성명/식별번호/휴대폰번호 3가지를 입력 후 Submit을 하게된다.
 
-3개 정보의 엔트로피가 낮아(병원등록번호가 순차적, 성명·휴대폰은 유출/사회공학으로 확보 가능) 무차별 대입 + 식별자 열거(enumeration)에 취약하다.
+3개 정보의 엔트로피가 낮아(식별번호가 순차적이기 쉽고, 성명·휴대폰은 유출/사회공학으로 확보 가능) 무차별 대입 + 식별자 열거(enumeration)에 취약하다.
 인증 폼 앞단에 PoW(Proof of Work) 챌린지를 두어 자동화 공격 비용을 크게 높여야 한다.
 
 - PoW는 "자동화 비용 상승"이 목적, 실제 차단(Rate Limit, 식별자별 시도 제한)은 백엔드가 담당
@@ -58,7 +58,7 @@
                 ◀──────── challenge(JSON) ──────────  (HMAC 서명, TTL 5분)
 ④ 위젯이 PoW 풀이
    (SHA-256 nonce 탐색, WASM)
-⑤ 간편인증 폼 제출 ──── 성명+등록번호+휴대폰 ────▶ ⑥ API
+⑤ 간편인증 폼 제출 ──── 성명+식별번호+휴대폰 ────▶ ⑥ API
    + altcha payload                                  (1) Altcha.verifySolution() 검증
                                                       (2) payload 재사용 여부 확인 (1회용)
                                                       (3) 3개 정보 일치 확인
@@ -165,7 +165,7 @@ public class AltchaVerifier {
 ### 5.5 API에 적용
 
 ```java
-@PostMapping("/verify")          // 예약조회/문진/수납 진입 인증
+@PostMapping("/verify")          // 보호된 자원 조회 진입 인증
 public ResponseEntity<?> verifyBType(@RequestBody BTypeAuthRequest req) throws Exception {
 
     // (0) 상단 IP Rate Limit 통과 후 진입 (기존 흐름)
@@ -176,7 +176,7 @@ public ResponseEntity<?> verifyBType(@RequestBody BTypeAuthRequest req) throws E
     }
 
     // (2) 간편인증 3개 정보 일치 확인
-    boolean matched = authService.match(req.getName(), req.getHospitalNo(), req.getPhone());
+    boolean matched = authService.match(req.getName(), req.getIdNo(), req.getPhone());
 
     // (3) enumeration 방어: 어떤 필드가 틀렸는지 노출하지 말 것 (동일한 일반 메시지)
     if (!matched) {
@@ -257,7 +257,7 @@ export default function BTypeAuthForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: f.get('name'),
-        hospitalNo: f.get('hospitalNo'),
+        idNo: f.get('idNo'),
         phone: f.get('phone'),
         altcha, // 위젯에서 받은 payload
       }),
@@ -268,7 +268,7 @@ export default function BTypeAuthForm() {
   return (
     <form onSubmit={onSubmit}>
       <input name="name" placeholder="성명" />
-      <input name="hospitalNo" placeholder="병원등록번호" />
+      <input name="idNo" placeholder="식별번호" />
       <input name="phone" placeholder="휴대폰번호" />
       <AltchaWidget onVerified={setAltcha} />
       <button type="submit">확인</button>
@@ -297,7 +297,7 @@ export default function BTypeAuthForm() {
 - [ ] **위조 payload**: 임의/변조된 payload → `verifySolution` 실패 → 400
 - [ ] **만료 테스트**: 챌린지 발급 후 5분 경과 → 검증 실패
 - [ ] **재사용 공격**: 동일 payload로 2회 제출 → 1회만 통과, 2회차 거부
-- [ ] **enumeration 방어**: 등록번호만 틀림 / 휴대폰만 틀림 → **동일한 일반 메시지**인지 확인
+- [ ] **enumeration 방어**: 식별번호만 틀림 / 휴대폰만 틀림 → **동일한 일반 메시지**인지 확인
 - [ ] **난이도 체감**: `maxNumber` 값별 저사양 단말 풀이 시간 측정(UX 허용 범위 튜닝)
 - [ ] **외부 통신 0 검증**: 브라우저 네트워크 탭 + 서버 아웃바운드 로그에 Altcha 외부 호출이 없는지 확인
 - [ ] **부하/우회**: IP Rate Limit과 병행 동작, IP 변경 시 식별자별 시도 제한 동작 확인
@@ -308,10 +308,10 @@ export default function BTypeAuthForm() {
 
 - **HMAC secret 관리**: 환경변수로 주입, 소스/리포지토리에 커밋 금지. 유출 시 PoW 우회 가능 → 교체 절차 마련
 - **난이도(maxNumber) 튜닝**: 너무 높으면 저사양 단말 UX 저하, 너무 낮으면 방어력 약화. 파일럿에서 단말별 측정 후 결정
-- **PoW는 보조 수단**: 결제(예약금수납)가 끼므로 **SMS OTP 추가**를 별도 트랙으로 검토 권장
+- **PoW는 보조 수단**: 결제 단계가 포함되는 경우 **SMS OTP 추가**를 별도 트랙으로 검토 권장
 - **에러 메시지 일반화**: 어느 필드가 틀렸는지 노출 금지(서버 응답 시간 차이도 일정하게)
 - **Sentinel 미사용**: 외부 통신 0 유지를 위해 Altcha 클라우드 스팸필터(Sentinel)는 사용하지 않음
-- **OSS 고지**: 발주사 오픈소스 목록(BOM)에 `altcha`(MIT), `altcha-lib-java`(MIT) 등재 + LICENSE 사본 첨부. 채택 버전 태그의 LICENSE 최종 대조
+- **OSS 고지**: 도입 조직의 오픈소스 목록(BOM)에 `altcha`(MIT), `altcha-lib-java`(MIT) 등재 + LICENSE 사본 첨부. 채택 버전 태그의 LICENSE 최종 대조
 
 ---
 
